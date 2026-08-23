@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
-    
+
     private final TransactionRepository transactionRepository;
     private final WalletRepository walletRepository;
     private final CategoryRepository categoryRepository;
@@ -40,21 +41,21 @@ public class TransactionServiceImpl implements TransactionService {
     private final BudgetService budgetService;
     private final WalletService walletService;
     private final DateInputValidator dateInputValidator;
-    
+
     @Override
     public Page<TransactionResponse> getAllTransactions(Integer month, Integer year, Integer categoryId, Pageable pageable) {
         User user = currentUserService.getCurrentUser();
         LocalDate now = LocalDate.now();
-        
+
         if (month == null) {
             month = now.getMonthValue();
         }
         if (year == null) {
             year = now.getYear();
         }
-        
+
         dateInputValidator.isMonthAndYearValid(month, year);
-        
+
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDateTime startDate = yearMonth
                 .atDay(1)
@@ -63,7 +64,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .plusMonths(1)
                 .atDay(1)
                 .atStartOfDay();
-        
+
         return transactionRepository.findTransactions(user, startDate, endDate, categoryId, pageable)
                 .map(t -> TransactionResponse.builder()
                 .id(t.getId())
@@ -75,7 +76,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .build()
                 );
     }
-    
+
     @Override
     @Transactional
     public void createTransaction(CreateTransactionRequest request) {
@@ -93,27 +94,28 @@ public class TransactionServiceImpl implements TransactionService {
                 .category(category)
                 .build();
         transactionRepository.save(transaction);
-        
+
         if (category.getType() == CategoryType.INCOME) {
             walletService.addBalance(wallet, transaction.getAmount());
         } else if (category.getType() == CategoryType.EXPENSE) {
             walletService.subtractBalance(wallet, transaction.getAmount());
         }
-        
+
         YearMonth yearMonth = YearMonth.from(request.getDate());
         budgetService.updateSpent(user, category, yearMonth);
     }
-    
+
     @Override
     @Transactional
     public void updateTransaction(Integer id, UpdateTransactionRequest request) {
-        if (request.isEmpty()) {
-            throw new AppException(ErrorCode.NO_DATA_TO_UPDATE);
-        }
-        
         User user = currentUserService.getCurrentUser();
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new AppException(ErrorCode.TRANSACTION_NOT_FOUND));
+
+        if (request.isEmpty() && Objects.equals(request.getNote(), transaction.getNote())) {
+            throw new AppException(ErrorCode.NO_DATA_TO_UPDATE);
+        }
+
         Wallet oldWallet = transaction.getWallet();
         Category oldCategory = transaction.getCategory();
         BigDecimal oldAmount = transaction.getAmount();
@@ -123,7 +125,7 @@ public class TransactionServiceImpl implements TransactionService {
         Category newCategory = oldCategory;
         BigDecimal newAmount = oldAmount;
         LocalDateTime newDate = oldDate;
-        
+
         if (request.getWalletId() != null) {
             newWallet = walletRepository.findByIdAndUserAndDeletedFalse(request.getWalletId(), user)
                     .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND));
@@ -138,9 +140,9 @@ public class TransactionServiceImpl implements TransactionService {
         if (request.getDate() != null) {
             newDate = request.getDate();
         }
-        
+
         YearMonth newYearMonth = YearMonth.from(newDate);
-        
+
         if (oldCategory.getType() == CategoryType.INCOME) {
             walletService.subtractBalance(oldWallet, oldAmount);
         } else if (oldCategory.getType() == CategoryType.EXPENSE) {
@@ -151,29 +153,29 @@ public class TransactionServiceImpl implements TransactionService {
         } else if (newCategory.getType() == CategoryType.EXPENSE) {
             walletService.subtractBalance(newWallet, newAmount);
         }
-        
+
         transaction.setWallet(newWallet);
         transaction.setCategory(newCategory);
         transaction.setAmount(newAmount);
         transaction.setDate(newDate);
-        
-        if (request.getNote() != null) {
+
+        if (!Objects.equals(request.getNote(), transaction.getNote())) {
             transaction.setNote(request.getNote());
         }
-        
+
         transactionRepository.save(transaction);
         budgetService.updateSpent(
                 user,
                 oldCategory,
                 oldYearMonth
         );
-        
+
         if (!oldCategory.getId().equals(newCategory.getId())
                 || !oldYearMonth.equals(newYearMonth)) {
             budgetService.updateSpent(user, newCategory, newYearMonth);
         }
     }
-    
+
     @Override
     @Transactional
     public void deleteTransaction(Integer id) {

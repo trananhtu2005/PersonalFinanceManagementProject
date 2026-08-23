@@ -21,6 +21,7 @@ import com.personalfinance.exception.ErrorCode;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,14 +73,13 @@ public class PaymentReminderServiceImpl implements PaymentReminderService {
 
     @Override
     public void updatePaymentReminder(Integer id, UpdatePaymentReminderRequest request) {
-        if (request.isEmpty()) {
-            throw new AppException(ErrorCode.NO_DATA_TO_UPDATE);
-        }
-
         User user = currentUserService.getCurrentUser();
         PaymentReminder paymentReminder = paymentReminderRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_REMINDER_NOT_FOUND));
 
+        if (request.isEmpty() && Objects.equals(request.getNote(), paymentReminder.getNote())) {
+            throw new AppException(ErrorCode.NO_DATA_TO_UPDATE);
+        }
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findByIdAndUserAndDeletedFalse(request.getCategoryId(), user)
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -94,7 +94,7 @@ public class PaymentReminderServiceImpl implements PaymentReminderService {
         if (request.getDueAt() != null) {
             paymentReminder.setDueAt(request.getDueAt());
         }
-        if (request.getNote() != null) {
+        if (!Objects.equals(request.getNote(), paymentReminder.getNote())) {
             paymentReminder.setNote(request.getNote());
         }
 

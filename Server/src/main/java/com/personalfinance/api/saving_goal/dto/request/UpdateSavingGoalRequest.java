@@ -24,7 +24,6 @@ public class UpdateSavingGoalRequest {
 
     public boolean isEmpty() {
         return title == null
-                && description == null
                 && target == null
                 && endAt == null
                 && categoryId == null;

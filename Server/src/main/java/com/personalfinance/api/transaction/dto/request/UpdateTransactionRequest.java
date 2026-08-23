@@ -24,7 +24,6 @@ public class UpdateTransactionRequest {
 
     public boolean isEmpty() {
         return amount == null
-                && note == null
                 && date == null
                 && walletId == null
                 && categoryId == null;

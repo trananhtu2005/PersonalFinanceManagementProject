@@ -23,7 +23,6 @@ public class UpdatePaymentReminderRequest {
         return title == null
                 && amount == null
                 && dueAt == null
-                && note == null
                 && categoryId == null;
     }
 }

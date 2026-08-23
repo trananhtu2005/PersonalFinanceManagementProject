@@ -24,6 +24,7 @@ import com.personalfinance.exception.ErrorCode;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class SavingGoalServiceImpl implements SavingGoalService {
-    
+
     private final SavingGoalRepository savingGoalRepository;
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
@@ -41,11 +42,11 @@ public class SavingGoalServiceImpl implements SavingGoalService {
     private final CurrentUserService currentUserService;
     private final NotificationService notificationService;
     private final WalletService walletService;
-    
+
     @Override
     public Page<SavingGoalResponse> getAllSavingGoals(Pageable pageable) {
         User user = currentUserService.getCurrentUser();
-        
+
         return savingGoalRepository.findByUser(user, pageable)
                 .map(sg -> SavingGoalResponse.builder()
                 .id(sg.getId())
@@ -60,17 +61,17 @@ public class SavingGoalServiceImpl implements SavingGoalService {
                 .build()
                 );
     }
-    
+
     @Override
     public void createSavingGoal(CreateSavingGoalRequest request) {
         User user = currentUserService.getCurrentUser();
         Category category = categoryRepository.findByIdAndUserAndDeletedFalse(request.getCategoryId(), user)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        
+
         if (category.getType() != CategoryType.SAVING) {
             throw new AppException(ErrorCode.INVALID_SAVING_CATEGORY);
         }
-        
+
         SavingGoal savingGoal = SavingGoal.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -81,39 +82,38 @@ public class SavingGoalServiceImpl implements SavingGoalService {
                 .user(user)
                 .build();
         savingGoal.setCategory(category);
-        
+
         savingGoalRepository.save(savingGoal);
     }
-    
+
     @Override
     public void updateSavingGoal(Integer id, UpdateSavingGoalRequest request) {
-        if (request.isEmpty()) {
-            throw new AppException(ErrorCode.NO_DATA_TO_UPDATE);
-        }
-        
         User user = currentUserService.getCurrentUser();
         SavingGoal savingGoal = savingGoalRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new AppException(ErrorCode.SAVING_GOAL_NOT_FOUND));
-        
+
+        if (request.isEmpty() && Objects.equals(request.getDescription(), savingGoal.getDescription())) {
+            throw new AppException(ErrorCode.NO_DATA_TO_UPDATE);
+        }
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findByIdAndUserAndDeletedFalse(request.getCategoryId(), user)
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-            
+
             if (category.getType() != CategoryType.SAVING) {
                 throw new AppException(ErrorCode.INVALID_SAVING_CATEGORY);
             }
-            
+
             savingGoal.setCategory(category);
         }
         if (request.getTitle() != null) {
             savingGoal.setTitle(request.getTitle());
         }
-        if (request.getDescription() != null) {
+        if (!Objects.equals(request.getDescription(), savingGoal.getDescription())) {
             savingGoal.setDescription(request.getDescription());
         }
         if (request.getTarget() != null) {
             savingGoal.setTarget(request.getTarget());
-            
+
             if (savingGoal.getCurrentAmount().compareTo(request.getTarget()) >= 0) {
                 savingGoal.setStatus(SavingStatus.COMPLETED);
             } else {
@@ -123,10 +123,10 @@ public class SavingGoalServiceImpl implements SavingGoalService {
         if (request.getEndAt() != null) {
             savingGoal.setEndAt(request.getEndAt());
         }
-        
+
         savingGoalRepository.save(savingGoal);
     }
-    
+
     @Override
     public void deleteSavingGoal(Integer id) {
         User user = currentUserService.getCurrentUser();
@@ -134,7 +134,7 @@ public class SavingGoalServiceImpl implements SavingGoalService {
                 .orElseThrow(() -> new AppException(ErrorCode.SAVING_GOAL_NOT_FOUND));
         savingGoalRepository.delete(savingGoal);
     }
-    
+
     @Override
     @Transactional
     public void deposit(Integer id, DepositRequest request) {
@@ -152,26 +152,26 @@ public class SavingGoalServiceImpl implements SavingGoalService {
                 .category(savingGoal.getCategory())
                 .savingGoal(savingGoal)
                 .build();
-        
+
         transactionRepository.save(transaction);
         walletService.subtractBalance(wallet, transaction.getAmount());
         savingGoal.setCurrentAmount(savingGoal.getCurrentAmount().add(request.getAmount()));
-        
+
         if (savingGoal.getCurrentAmount().compareTo(savingGoal.getTarget()) >= 0) {
             savingGoal.setStatus(SavingStatus.COMPLETED);
             notificationService.createNotification("Congratulation!",
                     "You have a completed saving goal, visit your saving goal page to view it!",
                     user);
         }
-        
+
         savingGoalRepository.save(savingGoal);
     }
-    
+
     @Override
     public List<SavingGoalResponse> getInProgressSavingGoals() {
         User user = currentUserService.getCurrentUser();
         List<SavingGoal> savingGoals = savingGoalRepository.findByUserAndStatus(user, SavingStatus.IN_PROGRESS);
-        
+
         return savingGoals.stream().map(sg
                 -> SavingGoalResponse.builder()
                         .id(sg.getId())
