@@ -1,6 +1,7 @@
 package com.personalfinance.api.notification.controller;
 
 import com.personalfinance.api.notification.dto.response.DetailNotificationResponse;
+import com.personalfinance.api.notification.dto.response.ExistUnreadNotificationResponse;
 import com.personalfinance.api.notification.dto.response.NotificationResponse;
 import com.personalfinance.api.notification.service.NotificationService;
 import com.personalfinance.common.MessageResponse;
@@ -45,5 +46,10 @@ public class NotificationController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/exist-unread-notification")
+    public ResponseEntity<ExistUnreadNotificationResponse> existsUnreadNotification() {
+        return ResponseEntity.ok(notificationService.existsUnreadNotification());
     }
 }

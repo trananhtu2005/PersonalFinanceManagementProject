@@ -16,6 +16,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     Optional<Notification> findByIdAndUser(Integer id, User user);
 
+    boolean existsByUserAndReadFalse(User user);
+    
     @Modifying
     @Query("""
            UPDATE Notification n

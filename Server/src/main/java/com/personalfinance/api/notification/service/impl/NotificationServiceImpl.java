@@ -1,6 +1,7 @@
 package com.personalfinance.api.notification.service.impl;
 
 import com.personalfinance.api.notification.dto.response.DetailNotificationResponse;
+import com.personalfinance.api.notification.dto.response.ExistUnreadNotificationResponse;
 import com.personalfinance.api.notification.dto.response.NotificationResponse;
 import com.personalfinance.api.notification.entity.Notification;
 import com.personalfinance.api.notification.repository.NotificationRepository;
@@ -42,6 +43,7 @@ public class NotificationServiceImpl implements NotificationService {
         Notification notification = notificationRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new AppException(ErrorCode.NOTIFICATION_NOT_FOUND));
         notification.setRead(true);
+        notificationRepository.save(notification);
         DetailNotificationResponse response = DetailNotificationResponse.builder()
                 .id(notification.getId())
                 .title(notification.getTitle())
@@ -67,5 +69,16 @@ public class NotificationServiceImpl implements NotificationService {
     public void markAllAsRead() {
         User user = currentUserService.getCurrentUser();
         notificationRepository.markAllAsRead(user);
+    }
+
+    @Override
+    public ExistUnreadNotificationResponse existsUnreadNotification() {
+        User user = currentUserService.getCurrentUser();
+        boolean existed = notificationRepository.existsByUserAndReadFalse(user);
+        ExistUnreadNotificationResponse response = ExistUnreadNotificationResponse.builder()
+                .existed(existed)
+                .build();
+        
+        return response;
     }
 }

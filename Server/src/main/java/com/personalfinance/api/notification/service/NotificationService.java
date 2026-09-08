@@ -1,6 +1,7 @@
 package com.personalfinance.api.notification.service;
 
 import com.personalfinance.api.notification.dto.response.DetailNotificationResponse;
+import com.personalfinance.api.notification.dto.response.ExistUnreadNotificationResponse;
 import com.personalfinance.api.notification.dto.response.NotificationResponse;
 import com.personalfinance.api.user.entity.User;
 import org.springframework.data.domain.Page;
@@ -15,4 +16,6 @@ public interface NotificationService {
     void createNotification(String title, String content, User user);
 
     void markAllAsRead();
+    
+    ExistUnreadNotificationResponse existsUnreadNotification();
 }

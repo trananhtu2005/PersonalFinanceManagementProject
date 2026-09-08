@@ -24,36 +24,53 @@ public class AiServiceImpl implements AiService {
             String jsonData = objectMapper.writeValueAsString(response);
             String prompt = """
                     Bạn là AI chuyên phân tích tài chính cá nhân.
-                    Hãy phân tích dữ liệu tài chính của người dùng dựa trên
-                    dữ liệu JSON được cung cấp bên dưới.
-                    Hãy phân tích:
+                    Hãy phân tích dữ liệu tài chính của người dùng dựa **chỉ trên dữ liệu JSON được cung cấp.
+                    Nội dung cần phân tích
                     1. So sánh thu nhập, chi tiêu và tiết kiệm với tháng trước.
-                    2. Phân tích các budget đã vượt mức và đưa ra đề xuất
-                       để hạn chế vượt budget.
-                    3. Phân tích các payment reminder.
-                       Nếu người dùng thanh toán các khoản này thì số dư
-                       dự kiến sẽ thay đổi như thế nào.
-                    4. Phân tích các saving goal đang IN_PROGRESS.
-                       Dựa trên tốc độ tiết kiệm hiện tại, nhận xét tiến độ
-                       và khả năng đạt mục tiêu.
-                    5. Phân tích các category.
-                       Xác định category chi tiêu nhiều và những category
-                       nên được tối ưu.
-                    6. Phân tích các transaction trong tháng:
-                       - khoản chi lớn
-                       - khoản chi lặp lại
-                       - mức chi tiêu
-                       - khoản chi bất thường
-                       - khoản chi có thể cân nhắc cắt giảm
-                    7. Đề xuất cách tối ưu:
-                       - thu nhập
-                       - chi tiêu
-                       - tiết kiệm
-                       - ngân sách
-                    8. Đưa ra lời khuyên thực tế dựa trên dữ liệu.
-                    Không được tự bịa số liệu.
-                    Chỉ sử dụng những số liệu có trong dữ liệu được cung cấp.
-                    Hãy trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.
+                    2. Xác định budget đã vượt mức và đưa ra cách hạn chế vượt budget.
+                    3. Phân tích payment reminder và số dư dự kiến sau khi thanh toán.
+                    4. Phân tích saving goal đang IN_PROGRESS, đánh giá tiến độ và khả năng đạt mục tiêu dựa trên tốc độ tiết kiệm hiện tại.
+                    5. Phân tích category, xác định category chi tiêu nhiều và category nên tối ưu.
+                    6. Phân tích transaction trong tháng, tập trung vào:
+                       Khoản chi lớn.
+                       Khoản chi lặp lại.
+                       Khoản chi bất thường.
+                       Khoản chi có thể cắt giảm.
+                    7. Đề xuất cách tối ưu thu nhập, chi tiêu, tiết kiệm và ngân sách.
+                    8. Đưa ra lời khuyên thực tế, ngắn gọn dựa trên dữ liệu.
+                    Quy tắc bắt buộc:
+                    Chỉ sử dụng số liệu có trong JSON.
+                    Không được tự bịa hoặc suy đoán số liệu.
+                    Nếu không đủ dữ liệu để phân tích một mục, hãy bỏ qua mục đó.
+                    Không lặp lại dữ liệu không cần thiết.
+                    Chỉ đưa ra những nhận xét có giá trị, không giải thích dài dòng.
+                    Sử dụng số liệu cụ thể khi có thể.
+                    Ưu tiên kết luận và đề xuất thay vì mô tả lại dữ liệu.
+                    Giới hạn độ dài:
+                    Tối đa 500 từ.
+                    Tối đa 25 dòng.
+                    Mỗi mục chỉ nên có 1–3 ý chính.
+                    Mỗi ý tối đa 2 câu.
+                    Không viết phần mở đầu hoặc kết luận dài.
+                    Không nhắc lại toàn bộ dữ liệu JSON.
+                    Định dạng trả lời:
+                    Sử dụng đúng cấu trúc sau:
+                    1. Tổng quan
+                    ...
+                    2. Budget
+                    ...
+                    3. Payment reminder
+                    ...
+                    4. Saving goal
+                    ...
+                    5. Category
+                    ...
+                    6. Transaction đáng chú ý
+                    ...
+                    7. Đề xuất
+                    ...
+                    8. Lời khuyên
+                    ...
                     Dữ liệu tài chính:
                     %s
                     """.formatted(jsonData);
