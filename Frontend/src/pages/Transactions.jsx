@@ -240,11 +240,13 @@ function Transactions() {
           sx={{ flex: 2, ml: "-1px" }}
         >
           <MenuItem value="">All categories</MenuItem>
-          {categories.map((c) => (
-            <MenuItem key={c.id} value={c.id}>
-              {c.name}
-            </MenuItem>
-          ))}
+          {categories
+            .filter((c) => c.type === "INCOME" || c.type === "EXPENSE")
+            .map((c) => (
+              <MenuItem key={c.id} value={c.id}>
+                {c.name}
+              </MenuItem>
+            ))}
         </TextField>
         <Button
           variant="contained"
@@ -397,11 +399,13 @@ function Transactions() {
                   ? editingTransaction.categoryName
                   : "Select category"}
               </MenuItem>
-              {categories.map((c) => (
-                <MenuItem key={c.id} value={c.id}>
-                  {c.name}
-                </MenuItem>
-              ))}
+              {categories
+                .filter((c) => c.type === "INCOME" || c.type === "EXPENSE")
+                .map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.name}
+                  </MenuItem>
+                ))}
             </TextField>
             <Box
               sx={{

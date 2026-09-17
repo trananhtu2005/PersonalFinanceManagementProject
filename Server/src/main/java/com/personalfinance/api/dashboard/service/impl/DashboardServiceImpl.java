@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DashboardServiceImpl implements DashboardService {
-    
+
     private final TransactionRepository transactionRepository;
     private final WalletRepository walletRepository;
     private final BudgetService budgetService;
@@ -38,19 +38,19 @@ public class DashboardServiceImpl implements DashboardService {
     private final SavingGoalService savingGoalService;
     private final CurrentUserService currentUserService;
     private final DateInputValidator dateInputValidator;
-    
+
     @Override
     public DashboardResponse getDashBoard(Integer month, Integer year) {
         User user = currentUserService.getCurrentUser();
         YearMonth current = YearMonth.now();
-        
+
         if (month == null) {
             month = current.getMonthValue();
         }
         if (year == null) {
             year = current.getYear();
         }
-        
+
         dateInputValidator.isMonthAndYearValid(month, year);
         YearMonth selected = YearMonth.of(year, month);
         YearMonth previous = selected.minusMonths(1);
@@ -103,7 +103,10 @@ public class DashboardServiceImpl implements DashboardService {
                 .amount(currentSaving)
                 .difference(savingDifference)
                 .build();
-        List<CategoryAmountProjection> categoryAmounts = transactionRepository.sumAmountGroupByCategory(user, startDate, endDate);
+        List<CategoryAmountProjection> categoryAmounts = transactionRepository.sumAmountGroupByCategory(user,
+                CategoryType.EXPENSE,
+                startDate,
+                endDate);
         List<DashboardCategoryResponse> categories = categoryAmounts.stream()
                 .map(c -> DashboardCategoryResponse.builder()
                 .id(c.getCategoryId())
@@ -130,7 +133,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .paymentReminders(paymentReminders)
                 .savingGoals(savingGoals)
                 .build();
-        
+
         return response;
     }
 }

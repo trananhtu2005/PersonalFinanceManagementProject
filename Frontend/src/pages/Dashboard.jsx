@@ -24,15 +24,15 @@ const formatDiff = (diff, isExpense = false) => {
 
   if (val === 0) return { text: "0", color: "text.secondary" };
 
-  const sign = val > 0 ? "+" : "-";
+  const sign = val > 0 ? "-" : "+";
   const amount = formatMoney(Math.abs(val));
   const text = `${sign} ${amount}`;
   let color = "text.primary";
 
   if (isExpense) {
-    color = val > 0 ? "error.main" : "success.main";
-  } else {
     color = val > 0 ? "success.main" : "error.main";
+  } else {
+    color = val > 0 ? "error.main" : "success.main";
   }
 
   return { text, color };

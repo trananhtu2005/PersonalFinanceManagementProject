@@ -26,7 +26,7 @@ public class AiServiceImpl implements AiService {
                     Bạn là AI chuyên phân tích tài chính cá nhân.
                     Hãy phân tích dữ liệu tài chính của người dùng dựa **chỉ trên dữ liệu JSON được cung cấp.
                     Nội dung cần phân tích
-                    1. So sánh thu nhập, chi tiêu và tiết kiệm với tháng trước.
+                    1. So sánh thu nhập, chi tiêu và tiết kiệm với tháng trước ( lưu ý difference của income và saving: nếu âm thì là tăng ).
                     2. Xác định budget đã vượt mức và đưa ra cách hạn chế vượt budget.
                     3. Phân tích payment reminder và số dư dự kiến sau khi thanh toán.
                     4. Phân tích saving goal đang IN_PROGRESS, đánh giá tiến độ và khả năng đạt mục tiêu dựa trên tốc độ tiết kiệm hiện tại.

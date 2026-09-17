@@ -102,7 +102,7 @@ public class BudgetServiceImpl implements BudgetService {
         List<Category> categories = budgetRepository.findCategoriesForSuggestion(user,
                 current.getMonthValue(),
                 current.getYear(),
-                List.of(CategoryType.EXPENSE, CategoryType.SAVING));
+                CategoryType.EXPENSE);
 
         return categories.stream()
                 .map(c -> CategoryResponse.builder()
@@ -124,8 +124,7 @@ public class BudgetServiceImpl implements BudgetService {
         Category category = categoryRepository.findByIdAndUserAndDeletedFalse(request.getCategoryId(), user)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        if (category.getType() != CategoryType.EXPENSE
-                && category.getType() != CategoryType.SAVING) {
+        if (category.getType() != CategoryType.EXPENSE) {
             throw new AppException(ErrorCode.INCOME_TYPE_REJECT);
         }
         if (budgetRepository.existsByUserAndCategoryAndMonthAndYear(user, category, month, year)) {

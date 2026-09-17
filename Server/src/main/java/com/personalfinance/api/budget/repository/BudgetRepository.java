@@ -30,7 +30,7 @@ public interface BudgetRepository extends JpaRepository<Budget, Integer> {
            FROM Category c
            WHERE c.user = :user
            AND c.deleted = false
-           AND c.type IN :types
+           AND c.type = :type
            AND NOT EXISTS (
                SELECT b.id
                FROM Budget b
@@ -44,6 +44,6 @@ public interface BudgetRepository extends JpaRepository<Budget, Integer> {
             @Param("user") User user,
             @Param("month") Integer month,
             @Param("year") Integer year,
-            @Param("types") List<CategoryType> types
+            @Param("type") CategoryType type
     );
 }

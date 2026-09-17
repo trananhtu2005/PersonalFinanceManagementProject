@@ -76,6 +76,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
             COALESCE(SUM(t.amount), 0) AS amount
             FROM Transaction t
             WHERE t.user = :user
+            AND t.category.type = :categoryType
             AND t.date >= :startDate
             AND t.date < :endDate
             GROUP BY t.category.id,
@@ -85,6 +86,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     """)
     List<CategoryAmountProjection> sumAmountGroupByCategory(
             @Param("user") User user,
+            @Param("categoryType") CategoryType categoryType,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
