@@ -47,3 +47,8 @@ admin:
   email: ${ADMIN_EMAIL}
   username: ${ADMIN_USERNAME}
   password: ${ADMIN_PASSWORD}
+
+logging:
+  level:
+    org.springframework.mail: DEBUG
+    org.eclipse.angus.mail: DEBUG

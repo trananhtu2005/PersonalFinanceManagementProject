@@ -241,7 +241,6 @@ function Transactions() {
         >
           <MenuItem value="">All categories</MenuItem>
           {categories
-            .filter((c) => c.type === "INCOME" || c.type === "EXPENSE")
             .map((c) => (
               <MenuItem key={c.id} value={c.id}>
                 {c.name}
